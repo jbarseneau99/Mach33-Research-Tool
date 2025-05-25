@@ -1,0 +1,9 @@
+com/mach33/research/model/ChatMessage.class
+com/mach33/research/model/Artifact.class
+com/mach33/research/repository/ResearchSessionRepository.class
+com/mach33/research/model/Artifact$ArtifactType.class
+com/mach33/research/model/ChatMessage$Role.class
+com/mach33/research/model/ResearchSession.class
+com/mach33/research/repository/ChatMessageRepository.class
+com/mach33/research/controller/HealthController.class
+com/mach33/research/ResearchPlatformApplication.class

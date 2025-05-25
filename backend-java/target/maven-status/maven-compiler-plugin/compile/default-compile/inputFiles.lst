@@ -1,0 +1,7 @@
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/model/ChatMessage.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/model/ResearchSession.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/repository/ResearchSessionRepository.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/HealthController.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/ResearchPlatformApplication.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/repository/ChatMessageRepository.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/model/Artifact.java
