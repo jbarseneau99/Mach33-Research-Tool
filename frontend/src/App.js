@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import ResearchStatementManager from './components/ResearchStatementManager';
 
 function App() {
   const [apiStatus, setApiStatus] = useState('Checking...');
   const [activeSection, setActiveSection] = useState('dashboard');
   const [currentSession, setCurrentSession] = useState(null);
+  const [statementStats, setStatementStats] = useState(null);
 
   useEffect(() => {
     const checkAPI = async () => {
@@ -36,6 +38,19 @@ function App() {
       status: 'Active'
     });
     setActiveSection('chat');
+    loadStatementStats(sessionId);
+  };
+
+  const loadStatementStats = async (sessionId) => {
+    try {
+      const response = await fetch(`/api/research-statements/session/${sessionId}/statistics`);
+      if (response.ok) {
+        const stats = await response.json();
+        setStatementStats(stats);
+      }
+    } catch (error) {
+      console.error('Error loading statement statistics:', error);
+    }
   };
 
   return (
@@ -155,10 +170,21 @@ function App() {
                 </div>
               </div>
               
+              {/* Research Statement Management */}
+              {currentSession && (
+                <ResearchStatementManager 
+                  sessionId={currentSession.id}
+                  onStatementCreated={(statement) => {
+                    console.log('New research statement created:', statement);
+                    loadStatementStats(currentSession.id);
+                  }}
+                />
+              )}
+              
               <div className="chat-messages">
                 <div className="message system">
                   <div className="message-content">
-                    Welcome to your research session! Ask questions and the AI agents will collaborate to help you.
+                    Welcome to your research session! Start by creating a research statement above, then ask questions and the AI agents will collaborate to help you.
                   </div>
                 </div>
               </div>
@@ -239,19 +265,31 @@ function App() {
           </div>
 
           <div className="artifacts-panel">
-            <h3>Research Artifacts</h3>
+            <h3>Research Statements</h3>
             <div className="artifact-types">
               <div className="artifact-type">
-                <span className="artifact-label">Claims</span>
-                <span className="artifact-count">0</span>
+                <span className="artifact-label">Total Statements</span>
+                <span className="artifact-count">{statementStats?.totalStatements || 0}</span>
               </div>
               <div className="artifact-type">
-                <span className="artifact-label">Evidence</span>
-                <span className="artifact-count">0</span>
+                <span className="artifact-label">Exploratory</span>
+                <span className="artifact-count">{statementStats?.exploratoryCount || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Specific</span>
+                <span className="artifact-count">{statementStats?.specificCount || 0}</span>
               </div>
               <div className="artifact-type">
                 <span className="artifact-label">Hypotheses</span>
-                <span className="artifact-count">0</span>
+                <span className="artifact-count">{statementStats?.hypothesisCount || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Active</span>
+                <span className="artifact-count">{statementStats?.activeCount || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Refined</span>
+                <span className="artifact-count">{statementStats?.refinedCount || 0}</span>
               </div>
             </div>
           </div>
