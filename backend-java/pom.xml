@@ -34,6 +34,8 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
         
+        <!-- Removed Firestore - using simple file persistence -->
+        
         <!-- JPA and Database dependencies removed - using in-memory services -->
         
         <!-- JSON Processing -->

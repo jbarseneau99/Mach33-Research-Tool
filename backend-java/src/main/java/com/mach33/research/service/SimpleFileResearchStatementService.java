@@ -13,18 +13,42 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 @Service
-public class FileBasedResearchStatementService {
+public class SimpleFileResearchStatementService {
     
     private final Map<Long, ResearchStatementDto> statements = new ConcurrentHashMap<>();
     private final AtomicLong idGenerator = new AtomicLong(1);
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String dataDir = "/tmp/research-data";
-    private final String statementsFile = dataDir + "/statements.json";
     
-    public FileBasedResearchStatementService() {
-        // Create data directory
-        new File(dataDir).mkdirs();
-        loadFromFile();
+    // Use environment variable for data directory, fallback to in-memory
+    private final String dataDir = System.getenv().getOrDefault("DATA_DIR", "/tmp/research-data");
+    private final String statementsFile = dataDir + "/statements.json";
+    private boolean persistenceEnabled = false;
+    
+    public SimpleFileResearchStatementService() {
+        try {
+            // Create data directory
+            File dir = new File(dataDir);
+            if (!dir.exists()) {
+                boolean created = dir.mkdirs();
+                if (created) {
+                    System.out.println("Created data directory: " + dataDir);
+                    persistenceEnabled = true;
+                } else {
+                    System.out.println("Could not create data directory, using in-memory storage");
+                }
+            } else {
+                persistenceEnabled = true;
+            }
+            
+            if (persistenceEnabled) {
+                loadFromFile();
+            } else {
+                System.out.println("Starting with in-memory storage only");
+            }
+        } catch (Exception e) {
+            System.err.println("Warning: File persistence disabled, using in-memory only: " + e.getMessage());
+            persistenceEnabled = false;
+        }
     }
     
     private void loadFromFile() {
@@ -42,6 +66,8 @@ public class FileBasedResearchStatementService {
                     }
                 }
                 System.out.println("Loaded " + loadedStatements.size() + " statements from file");
+            } else {
+                System.out.println("No existing statements file found, starting fresh");
             }
         } catch (IOException e) {
             System.err.println("Error loading statements from file: " + e.getMessage());
@@ -49,11 +75,17 @@ public class FileBasedResearchStatementService {
     }
     
     private void saveToFile() {
+        if (!persistenceEnabled) {
+            return; // Skip file operations if persistence is disabled
+        }
+        
         try {
             List<ResearchStatementDto> statementsList = new ArrayList<>(statements.values());
             objectMapper.writeValue(new File(statementsFile), statementsList);
+            System.out.println("Saved " + statementsList.size() + " statements to file");
         } catch (IOException e) {
-            System.err.println("Error saving statements to file: " + e.getMessage());
+            System.err.println("Error saving statements to file (continuing with in-memory): " + e.getMessage());
+            persistenceEnabled = false; // Disable future file operations
         }
     }
     
