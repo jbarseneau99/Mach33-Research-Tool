@@ -33,7 +33,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:$SHORT_SHA',
       '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:latest',
       './frontend'
     ]
@@ -43,7 +43,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:$SHORT_SHA',
       '-t', 'gcr.io/$PROJECT_ID/research-platform-api:latest',
       './backend/api'
     ]
@@ -53,7 +53,7 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
-      '-t', 'gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-worker:$SHORT_SHA',
       '-t', 'gcr.io/$PROJECT_ID/research-platform-worker:latest',
       './backend/worker'
     ]
@@ -62,7 +62,7 @@ steps:
 
   # Step 3: Push images to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-frontend:$SHORT_SHA']
     id: 'push-frontend-image'
     waitFor: ['build-frontend-image']
 
@@ -71,7 +71,7 @@ steps:
     waitFor: ['build-frontend-image']
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:$SHORT_SHA']
     id: 'push-api-image'
     waitFor: ['build-api-image']
 
@@ -80,7 +80,7 @@ steps:
     waitFor: ['build-api-image']
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-worker:$SHORT_SHA']
     id: 'push-worker-image'
     waitFor: ['build-worker-image']
 
@@ -94,7 +94,7 @@ steps:
     - 'run'
     - 'deploy'
     - 'research-platform-frontend'
-    - '--image=gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA'
+    - '--image=gcr.io/$PROJECT_ID/research-platform-frontend:$SHORT_SHA'
     - '--region=us-central1'
     - '--platform=managed'
     - '--allow-unauthenticated'
@@ -110,7 +110,7 @@ steps:
     - 'run'
     - 'deploy'
     - 'research-platform-api'
-    - '--image=gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA'
+    - '--image=gcr.io/$PROJECT_ID/research-platform-api:$SHORT_SHA'
     - '--region=us-central1'
     - '--platform=managed'
     - '--no-allow-unauthenticated'
@@ -128,7 +128,7 @@ steps:
     - 'run'
     - 'deploy'
     - 'research-platform-worker'
-    - '--image=gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA'
+    - '--image=gcr.io/$PROJECT_ID/research-platform-worker:$SHORT_SHA'
     - '--region=us-central1'
     - '--platform=managed'
     - '--no-allow-unauthenticated'
@@ -147,7 +147,7 @@ steps:
     - 'jobs'
     - 'create'
     - 'migration-job-$BUILD_ID'
-    - '--image=gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA'
+    - '--image=gcr.io/$PROJECT_ID/research-platform-api:$SHORT_SHA'
     - '--region=us-central1'
     - '--task-count=1'
     - '--parallelism=1'
@@ -186,9 +186,9 @@ substitutions:
 
 # Images to be pushed to Container Registry
 images:
-  - 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/research-platform-frontend:$SHORT_SHA'
   - 'gcr.io/$PROJECT_ID/research-platform-frontend:latest'
-  - 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/research-platform-api:$SHORT_SHA'
   - 'gcr.io/$PROJECT_ID/research-platform-api:latest'
-  - 'gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/research-platform-worker:$SHORT_SHA'
   - 'gcr.io/$PROJECT_ID/research-platform-worker:latest' 
