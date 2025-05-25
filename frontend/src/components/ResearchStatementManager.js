@@ -68,7 +68,7 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
     try {
       if (mockMode) return;
       
-      const response = await fetch(`/api/research-statements/session/${sessionId}/active`);
+      const response = await apiCall(`/research-statements/session/${sessionId}/active`);
       if (response.ok) {
         const data = await response.json();
         setActiveStatement(data);
@@ -147,11 +147,8 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
     setLoading(true);
     
     try {
-      const response = await fetch(`/api/research-statements/${statementId}/refine`, {
+      const response = await apiCall(`/research-statements/${statementId}/refine`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(refinementData),
       });
       
@@ -172,11 +169,8 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/research-statements/generate-subquestions', {
+      const response = await apiCall('/research-statements/generate-subquestions', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           researchStatement: statement.refinedStatement || statement.originalStatement
         }),
@@ -195,11 +189,8 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
 
   const addSubquestions = async (statementId, subquestions) => {
     try {
-      const response = await fetch(`/api/research-statements/${statementId}/subquestions`, {
+      const response = await apiCall(`/research-statements/${statementId}/subquestions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ subquestions }),
       });
       
@@ -215,11 +206,8 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
 
   const updateStatementStatus = async (statementId, status) => {
     try {
-      const response = await fetch(`/api/research-statements/${statementId}/status`, {
+      const response = await apiCall(`/research-statements/${statementId}/status`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({ status }),
       });
       
