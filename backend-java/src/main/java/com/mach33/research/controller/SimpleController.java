@@ -30,4 +30,16 @@ public class SimpleController {
         response.put("backend", "Spring Boot + Java 17");
         return response;
     }
+    
+    @GetMapping("/api/health")
+    public Map<String, Object> apiHealth() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("service", "Multi-Agent Research Platform");
+        response.put("version", "1.0.0");
+        response.put("timestamp", LocalDateTime.now().toString());
+        response.put("backend", "Spring Boot + Java 17");
+        response.put("environment", "production");
+        return response;
+    }
 } 
