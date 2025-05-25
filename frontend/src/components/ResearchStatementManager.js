@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ResearchStatementManager.css';
+import { apiCall } from '../config';
 
 const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
   const [statements, setStatements] = useState([]);
@@ -30,7 +31,7 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
 
   const loadStatements = async () => {
     try {
-      const response = await fetch(`/api/research-statements/session/${sessionId}`);
+      const response = await apiCall(`/research-statements/session/${sessionId}`);
       if (response.ok) {
         const data = await response.json();
         setStatements(data);
@@ -57,11 +58,8 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/research-statements', {
+      const response = await apiCall('/research-statements', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           ...newStatement,
           sessionId

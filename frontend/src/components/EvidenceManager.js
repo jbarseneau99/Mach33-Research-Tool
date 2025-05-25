@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './EvidenceManager.css';
+import { apiCall } from '../config';
 
 const EvidenceManager = ({ sessionId, onEvidenceCreated }) => {
   const [evidence, setEvidence] = useState([]);
@@ -36,7 +37,7 @@ const EvidenceManager = ({ sessionId, onEvidenceCreated }) => {
 
   const loadEvidence = async () => {
     try {
-      const response = await fetch(`/api/evidence/session/${sessionId}`);
+      const response = await apiCall(`/evidence/session/${sessionId}`);
       if (response.ok) {
         const data = await response.json();
         setEvidence(data);
@@ -51,11 +52,8 @@ const EvidenceManager = ({ sessionId, onEvidenceCreated }) => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/evidence', {
+      const response = await apiCall('/evidence', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
           ...newEvidence,
           sessionId

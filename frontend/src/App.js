@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ResearchStatementManager from './components/ResearchStatementManager';
 import EvidenceManager from './components/EvidenceManager';
+import { apiCall } from './config';
 
 function App() {
   const [apiStatus, setApiStatus] = useState('Checking...');
@@ -13,7 +14,7 @@ function App() {
   useEffect(() => {
     const checkAPI = async () => {
       try {
-        const response = await fetch('/api/health');
+        const response = await apiCall('/health');
         if (response.ok) {
           setApiStatus('Connected ✅');
         } else {
@@ -46,7 +47,7 @@ function App() {
 
   const loadStatementStats = async (sessionId) => {
     try {
-      const response = await fetch(`/api/research-statements/session/${sessionId}/statistics`);
+      const response = await apiCall(`/research-statements/session/${sessionId}/statistics`);
       if (response.ok) {
         const stats = await response.json();
         setStatementStats(stats);
@@ -58,7 +59,7 @@ function App() {
 
   const loadEvidenceStats = async (sessionId) => {
     try {
-      const response = await fetch(`/api/evidence/session/${sessionId}/statistics`);
+      const response = await apiCall(`/evidence/session/${sessionId}/statistics`);
       if (response.ok) {
         const stats = await response.json();
         setEvidenceStats(stats);
