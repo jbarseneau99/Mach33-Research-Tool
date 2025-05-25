@@ -7,7 +7,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci --omit=dev
+
+# Fix security vulnerabilities
+RUN npm audit fix --force || true
 
 # Copy source code
 COPY . .
