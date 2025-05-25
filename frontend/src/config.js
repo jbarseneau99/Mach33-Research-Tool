@@ -4,7 +4,7 @@ const config = {
     apiUrl: 'http://localhost:8080/api'
   },
   production: {
-    apiUrl: 'https://research-platform-api-4epv27jeia-uc.a.run.app/api'
+    apiUrl: 'https://research-platform-api-214656435079.us-central1.run.app/api'
   }
 };
 
