@@ -36,8 +36,6 @@ spring:
 # Server Configuration
 server:
   port: ${PORT:8080}
-  servlet:
-    context-path: /api
     
 # Management/Actuator Configuration
 management:
