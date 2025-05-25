@@ -1,0 +1,16 @@
+# Cursor Rules Configuration
+# This file contains rules and preferences for the Cursor AI assistant
+
+# Project-specific instructions
+You are working on a research tool project.
+
+# Code style preferences
+- Use clear, descriptive variable names
+- Add comments for complex logic
+- Follow consistent indentation
+
+# File handling
+# - Be careful with sensitive files like .env
+# - Never commit .env files to version control
+- Always backup important files before major changes
+- Use .gitignore files to exclude sensitive files and build artifacts 
