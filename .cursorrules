@@ -14,3 +14,9 @@ You are working on a research tool project.
 # - Never commit .env files to version control
 - Always backup important files before major changes
 - Use .gitignore files to exclude sensitive files and build artifacts 
+
+#Build and deploy to clound in this order 
+(1) Code changes 
+(2) Test locally 
+(3) Push to GitHub first 
+(4) Then deploy to cloud 
