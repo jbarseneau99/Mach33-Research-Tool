@@ -57,10 +57,9 @@ steps:
     - '--allow-unauthenticated'
     - '--port=8080'
     - '--memory=1Gi'
-    - '--cpu=2'
+    - '--cpu=1'
     - '--max-instances=10'
-    - '--set-env-vars=SPRING_PROFILES_ACTIVE=production'
-    - '--set-env-vars=DATABASE_URL=jdbc:postgresql://localhost:5432/research_platform'
+    - '--timeout=300'
     id: 'deploy-api'
     waitFor: ['push-api-image']
 
