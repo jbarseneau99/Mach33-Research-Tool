@@ -8,6 +8,7 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showRefineForm, setShowRefineForm] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [mockMode, setMockMode] = useState(false);
   
   // Form states
   const [newStatement, setNewStatement] = useState({
@@ -31,18 +32,42 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
 
   const loadStatements = async () => {
     try {
+      if (mockMode) {
+        // Mock data for testing
+        setStatements([
+          {
+            id: 1,
+            originalStatement: "How does AI impact modern research methodologies?",
+            type: "EXPLORATORY",
+            status: "ACTIVE",
+            createdAt: new Date().toISOString(),
+            subquestions: ["What are the main AI tools used in research?", "How has AI changed data analysis?"]
+          }
+        ]);
+        return;
+      }
+      
       const response = await apiCall(`/research-statements/session/${sessionId}`);
       if (response.ok) {
         const data = await response.json();
         setStatements(data);
+      } else {
+        console.log('API not available, switching to mock mode');
+        setMockMode(true);
+        loadStatements(); // Retry with mock mode
       }
     } catch (error) {
       console.error('Error loading statements:', error);
+      console.log('Switching to mock mode');
+      setMockMode(true);
+      loadStatements(); // Retry with mock mode
     }
   };
 
   const loadActiveStatement = async () => {
     try {
+      if (mockMode) return;
+      
       const response = await fetch(`/api/research-statements/session/${sessionId}/active`);
       if (response.ok) {
         const data = await response.json();
@@ -58,6 +83,32 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
     setLoading(true);
     
     try {
+      if (mockMode) {
+        // Mock creation
+        const newStmt = {
+          id: Date.now(),
+          ...newStatement,
+          sessionId,
+          status: 'ACTIVE',
+          createdAt: new Date().toISOString(),
+          subquestions: []
+        };
+        
+        setStatements([newStmt, ...statements]);
+        setNewStatement({ originalStatement: '', type: 'EXPLORATORY' });
+        setShowCreateForm(false);
+        
+        if (!activeStatement) {
+          setActiveStatement(newStmt);
+        }
+        
+        if (onStatementCreated) {
+          onStatementCreated(newStmt);
+        }
+        setLoading(false);
+        return;
+      }
+      
       const response = await apiCall('/research-statements', {
         method: 'POST',
         body: JSON.stringify({
@@ -84,6 +135,9 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
       }
     } catch (error) {
       console.error('Error creating statement:', error);
+      console.log('Switching to mock mode');
+      setMockMode(true);
+      createStatement(e); // Retry with mock mode
     } finally {
       setLoading(false);
     }
@@ -205,7 +259,7 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
   return (
     <div className="research-statement-manager">
       <div className="statement-header">
-        <h3>Research Statements</h3>
+        <h3>Research Statements {mockMode && <span style={{color: '#f39c12', fontSize: '12px'}}>(Demo Mode)</span>}</h3>
         <button 
           className="btn-primary"
           onClick={() => setShowCreateForm(true)}

@@ -9,6 +9,7 @@ const EvidenceManager = ({ sessionId, onEvidenceCreated }) => {
   const [showReliabilityForm, setShowReliabilityForm] = useState(null);
   const [loading, setLoading] = useState(false);
   const [extractedEvidence, setExtractedEvidence] = useState([]);
+  const [mockMode, setMockMode] = useState(false);
   
   // Form states
   const [newEvidence, setNewEvidence] = useState({
@@ -37,13 +38,37 @@ const EvidenceManager = ({ sessionId, onEvidenceCreated }) => {
 
   const loadEvidence = async () => {
     try {
+      if (mockMode) {
+        // Mock evidence data
+        setEvidence([
+          {
+            id: 1,
+            content: "Studies show that AI-powered research tools increase productivity by 40%",
+            type: "PRIMARY",
+            source: "Journal of Research Innovation, 2024",
+            reliabilityScore: 0.85,
+            createdAt: new Date().toISOString(),
+            linkedClaims: [],
+            tags: ["AI", "productivity", "research"]
+          }
+        ]);
+        return;
+      }
+      
       const response = await apiCall(`/evidence/session/${sessionId}`);
       if (response.ok) {
         const data = await response.json();
         setEvidence(data);
+      } else {
+        console.log('API not available, switching to mock mode');
+        setMockMode(true);
+        loadEvidence();
       }
     } catch (error) {
       console.error('Error loading evidence:', error);
+      console.log('Switching to mock mode');
+      setMockMode(true);
+      loadEvidence();
     }
   };
 
@@ -214,7 +239,7 @@ const EvidenceManager = ({ sessionId, onEvidenceCreated }) => {
   return (
     <div className="evidence-manager">
       <div className="evidence-header">
-        <h3>Evidence Management</h3>
+        <h3>Evidence Management {mockMode && <span style={{color: '#f39c12', fontSize: '12px'}}>(Demo Mode)</span>}</h3>
         <div className="header-actions">
           <button 
             className="btn-secondary"
