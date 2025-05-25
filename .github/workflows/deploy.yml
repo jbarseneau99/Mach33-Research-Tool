@@ -1,24 +1,58 @@
-name: Deploy to Google Cloud
+name: Deploy to Google Cloud Run
 
 on:
   push:
     branches:
       - main
       - develop
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - '.github/workflows/**'
   pull_request:
     branches:
       - main
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
 
 env:
-  PROJECT_ID: mach33-research-tool
-  GKE_CLUSTER: research-platform-cluster
-  GKE_ZONE: us-central1-a
+  PROJECT_ID: mach33-research-tool-460917
+  REGION: us-central1
   REGISTRY_HOSTNAME: gcr.io
 
 jobs:
+  # Check if application code exists before running deployment
+  check-code:
+    name: Check Application Code
+    runs-on: ubuntu-latest
+    outputs:
+      has-frontend: ${{ steps.check.outputs.has-frontend }}
+      has-backend: ${{ steps.check.outputs.has-backend }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    
+    - name: Check for application code
+      id: check
+      run: |
+        if [ -f "frontend/package.json" ]; then
+          echo "has-frontend=true" >> $GITHUB_OUTPUT
+        else
+          echo "has-frontend=false" >> $GITHUB_OUTPUT
+        fi
+        
+        if [ -f "backend/requirements.txt" ]; then
+          echo "has-backend=true" >> $GITHUB_OUTPUT
+        else
+          echo "has-backend=false" >> $GITHUB_OUTPUT
+        fi
+
   setup-build-publish-deploy:
     name: Setup, Build, Publish, and Deploy
     runs-on: ubuntu-latest
+    needs: check-code
+    if: needs.check-code.outputs.has-frontend == 'true' && needs.check-code.outputs.has-backend == 'true'
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
 
     steps:
@@ -52,11 +86,6 @@ jobs:
     - name: Configure Docker
       run: |-
         gcloud --quiet auth configure-docker
-
-    # Get the GKE credentials so we can deploy to the cluster
-    - name: Get GKE credentials
-      run: |-
-        gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
 
     # Install frontend dependencies
     - name: Install frontend dependencies
@@ -120,29 +149,69 @@ jobs:
         docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:$GITHUB_SHA"
         docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:latest"
 
-    # Deploy to GKE
-    - name: Deploy to GKE
+    # Deploy to Cloud Run
+    - name: Deploy frontend to Cloud Run
       run: |-
-        # Replace image tags in Kubernetes manifests
-        sed -i "s|FRONTEND_IMAGE|$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:$GITHUB_SHA|g" k8s/frontend-deployment.yaml
-        sed -i "s|API_IMAGE|$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA|g" k8s/api-deployment.yaml
-        sed -i "s|WORKER_IMAGE|$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:$GITHUB_SHA|g" k8s/worker-deployment.yaml
-        
-        # Apply Kubernetes manifests
-        kubectl apply -f k8s/
+        gcloud run deploy research-platform-frontend \
+          --image="$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:$GITHUB_SHA" \
+          --region="$REGION" \
+          --platform=managed \
+          --allow-unauthenticated \
+          --port=3000 \
+          --memory=512Mi \
+          --cpu=1 \
+          --max-instances=10
+
+    - name: Deploy API to Cloud Run
+      run: |-
+        gcloud run deploy research-platform-api \
+          --image="$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA" \
+          --region="$REGION" \
+          --platform=managed \
+          --no-allow-unauthenticated \
+          --port=8000 \
+          --memory=1Gi \
+          --cpu=1 \
+          --max-instances=20 \
+          --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,ENVIRONMENT=production" \
+          --service-account="research-platform-api@$PROJECT_ID.iam.gserviceaccount.com"
+
+    - name: Deploy worker to Cloud Run
+      run: |-
+        gcloud run deploy research-platform-worker \
+          --image="$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:$GITHUB_SHA" \
+          --region="$REGION" \
+          --platform=managed \
+          --no-allow-unauthenticated \
+          --memory=1Gi \
+          --cpu=1 \
+          --max-instances=5 \
+          --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,ENVIRONMENT=production" \
+          --service-account="research-platform-worker@$PROJECT_ID.iam.gserviceaccount.com"
 
     # Run database migrations
     - name: Run database migrations
       run: |-
-        kubectl run migration-job-$GITHUB_RUN_ID \
+        gcloud run jobs create migration-job-$GITHUB_RUN_ID \
           --image="$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA" \
-          --restart=Never \
-          --command -- python manage.py migrate
+          --region="$REGION" \
+          --task-count=1 \
+          --parallelism=1 \
+          --task-timeout=600 \
+          --max-retries=3 \
+          --set-env-vars="GOOGLE_CLOUD_PROJECT=$PROJECT_ID,ENVIRONMENT=production" \
+          --service-account="research-platform-api@$PROJECT_ID.iam.gserviceaccount.com" \
+          --command="python,manage.py,migrate"
+        
+        gcloud run jobs execute migration-job-$GITHUB_RUN_ID \
+          --region="$REGION" \
+          --wait
 
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
+    needs: check-code
+    if: github.event_name == 'pull_request' && (needs.check-code.outputs.has-frontend == 'true' || needs.check-code.outputs.has-backend == 'true')
 
     steps:
     - name: Checkout
@@ -165,7 +234,7 @@ jobs:
     name: Performance Test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/develop'
-    needs: setup-build-publish-deploy
+    needs: [check-code, setup-build-publish-deploy]
 
     steps:
     - name: Checkout
@@ -186,4 +255,18 @@ jobs:
     - name: Run performance tests
       run: k6 run tests/performance/load-test.js
       env:
-        API_BASE_URL: ${{ secrets.STAGING_API_URL }} 
+        API_BASE_URL: ${{ secrets.STAGING_API_URL }}
+
+  notify-skip:
+    name: Notify Workflow Skipped
+    runs-on: ubuntu-latest
+    needs: check-code
+    if: needs.check-code.outputs.has-frontend == 'false' || needs.check-code.outputs.has-backend == 'false'
+    
+    steps:
+    - name: Notify that deployment was skipped
+      run: |
+        echo "::notice::Deployment skipped - application code not found"
+        echo "Frontend code exists: ${{ needs.check-code.outputs.has-frontend }}"
+        echo "Backend code exists: ${{ needs.check-code.outputs.has-backend }}"
+        echo "Create frontend/package.json and backend/requirements.txt to enable deployment" 
