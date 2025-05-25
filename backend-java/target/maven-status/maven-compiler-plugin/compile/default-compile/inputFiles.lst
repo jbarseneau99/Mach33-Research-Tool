@@ -1,7 +1,7 @@
-/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/model/ChatMessage.java
-/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/model/ResearchSession.java
-/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/repository/ResearchSessionRepository.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/ResearchStatementController.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/HealthController.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/service/InMemoryResearchStatementService.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/ResearchPlatformApplication.java
-/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/repository/ChatMessageRepository.java
-/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/model/Artifact.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/EvidenceController.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/SimpleController.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/service/InMemoryEvidenceService.java
