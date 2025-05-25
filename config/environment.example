@@ -1,0 +1,32 @@
+# Multi-Agent Research Platform Environment Configuration
+# Copy this file to .env and update with your actual values
+
+# Database Configuration
+DATABASE_HOST=34.71.81.10
+DATABASE_PORT=5432
+DATABASE_NAME=research_platform
+DATABASE_USER=app_user
+DATABASE_PASSWORD=your_database_password_here
+
+# Google Cloud Configuration
+GOOGLE_CLOUD_PROJECT=mach33-research-tool-460917
+GOOGLE_CLOUD_REGION=us-central1
+
+# Storage Configuration
+STORAGE_BUCKET_DOCUMENTS=mach33-research-tool-460917-research-documents
+STORAGE_BUCKET_ARTIFACTS=mach33-research-tool-460917-research-artifacts
+STORAGE_BUCKET_BACKUPS=mach33-research-tool-460917-research-backups
+
+# Pub/Sub Configuration
+PUBSUB_TOPIC_RESEARCH_EVENTS=research-events
+PUBSUB_TOPIC_QUALITY_ASSESSMENTS=quality-assessments
+PUBSUB_TOPIC_AI_AGENT_REQUESTS=ai-agent-requests
+PUBSUB_TOPIC_SESSION_UPDATES=session-updates
+
+# AI Service Configuration (update with your API keys)
+OPENAI_API_KEY=your_openai_api_key_here
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+
+# Application Configuration
+JWT_SECRET=your_jwt_secret_here
+ENVIRONMENT=development 

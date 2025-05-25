@@ -1,0 +1,144 @@
+# Cloud Build configuration for Multi-Agent Research Platform
+# This file defines the CI/CD pipeline for automated deployment
+
+steps:
+  # Step 1: Install dependencies and run tests
+  - name: 'node:18'
+    entrypoint: 'npm'
+    args: ['ci']
+    dir: 'frontend'
+    id: 'install-frontend-deps'
+
+  - name: 'node:18'
+    entrypoint: 'npm'
+    args: ['run', 'test']
+    dir: 'frontend'
+    id: 'test-frontend'
+    waitFor: ['install-frontend-deps']
+
+  - name: 'python:3.11'
+    entrypoint: 'pip'
+    args: ['install', '-r', 'requirements.txt']
+    dir: 'backend'
+    id: 'install-backend-deps'
+
+  - name: 'python:3.11'
+    entrypoint: 'python'
+    args: ['-m', 'pytest', 'tests/']
+    dir: 'backend'
+    id: 'test-backend'
+    waitFor: ['install-backend-deps']
+
+  # Step 2: Build Docker images
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:latest',
+      './frontend'
+    ]
+    id: 'build-frontend-image'
+    waitFor: ['test-frontend']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:latest',
+      './backend/api'
+    ]
+    id: 'build-api-image'
+    waitFor: ['test-backend']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-worker:latest',
+      './backend/worker'
+    ]
+    id: 'build-worker-image'
+    waitFor: ['test-backend']
+
+  # Step 3: Push images to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA']
+    id: 'push-frontend-image'
+    waitFor: ['build-frontend-image']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-frontend:latest']
+    waitFor: ['build-frontend-image']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA']
+    id: 'push-api-image'
+    waitFor: ['build-api-image']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:latest']
+    waitFor: ['build-api-image']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA']
+    id: 'push-worker-image'
+    waitFor: ['build-worker-image']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-worker:latest']
+    waitFor: ['build-worker-image']
+
+  # Step 4: Deploy to GKE (only for main branch)
+  - name: 'gcr.io/cloud-builders/gke-deploy'
+    args:
+    - run
+    - --filename=k8s/
+    - --image=gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA
+    - --image=gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA
+    - --image=gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA
+    - --location=us-central1-a
+    - --cluster=research-platform-cluster
+    id: 'deploy-to-gke'
+    waitFor: ['push-frontend-image', 'push-api-image', 'push-worker-image']
+
+  # Step 5: Run database migrations
+  - name: 'gcr.io/cloud-builders/kubectl'
+    args:
+    - 'run'
+    - 'migration-job-$BUILD_ID'
+    - '--image=gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA'
+    - '--restart=Never'
+    - '--command'
+    - '--'
+    - 'python'
+    - 'manage.py'
+    - 'migrate'
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=us-central1-a'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=research-platform-cluster'
+    id: 'run-migrations'
+    waitFor: ['deploy-to-gke']
+
+# Build options
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  substitutionOption: 'ALLOW_LOOSE'
+
+# Timeout for the entire build
+timeout: '1800s'
+
+# Substitutions for environment-specific builds
+substitutions:
+  _ENVIRONMENT: 'staging'
+  _CLUSTER_NAME: 'research-platform-cluster'
+  _CLUSTER_LOCATION: 'us-central1-a'
+
+# Images to be pushed to Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/research-platform-frontend:latest'
+  - 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/research-platform-api:latest'
+  - 'gcr.io/$PROJECT_ID/research-platform-worker:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/research-platform-worker:latest' 

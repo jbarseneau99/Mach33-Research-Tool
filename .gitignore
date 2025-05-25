@@ -30,4 +30,35 @@ logs/
 
 # Temporary files
 *.tmp
-*.temp 
+*.temp
+
+# Google Cloud and deployment files
+.gcloudignore
+service-account-key.json
+*.key
+*.pem
+
+# Kubernetes secrets
+k8s/secrets/
+k8s/*/secrets/
+
+# Environment-specific configs
+.env.local
+.env.staging
+.env.production
+config/local.yaml
+config/staging.yaml
+config/production.yaml
+
+# Terraform state files (if using Terraform)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Cloud Build logs
+cloudbuild-logs/Google_cloud/

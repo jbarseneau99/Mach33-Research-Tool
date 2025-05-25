@@ -1,0 +1,189 @@
+name: Deploy to Google Cloud
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: mach33-research-tool
+  GKE_CLUSTER: research-platform-cluster
+  GKE_ZONE: us-central1-a
+  REGISTRY_HOSTNAME: gcr.io
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    # Configure Workload Identity Federation and generate an access token
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v1'
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+    # Setup gcloud CLI
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+
+    # Configure Docker to use the gcloud command-line tool as a credential helper
+    - name: Configure Docker
+      run: |-
+        gcloud --quiet auth configure-docker
+
+    # Get the GKE credentials so we can deploy to the cluster
+    - name: Get GKE credentials
+      run: |-
+        gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
+
+    # Install frontend dependencies
+    - name: Install frontend dependencies
+      run: npm ci
+      working-directory: ./frontend
+
+    # Run frontend tests
+    - name: Run frontend tests
+      run: npm test -- --coverage --watchAll=false
+      working-directory: ./frontend
+
+    # Install backend dependencies
+    - name: Install backend dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+      working-directory: ./backend
+
+    # Run backend tests
+    - name: Run backend tests
+      run: python -m pytest tests/ --cov=./ --cov-report=xml
+      working-directory: ./backend
+
+    # Build frontend Docker image
+    - name: Build frontend image
+      run: |-
+        docker build \
+          --tag "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:$GITHUB_SHA" \
+          --tag "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:latest" \
+          ./frontend
+
+    # Build API Docker image
+    - name: Build API image
+      run: |-
+        docker build \
+          --tag "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA" \
+          --tag "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:latest" \
+          ./backend/api
+
+    # Build worker Docker image
+    - name: Build worker image
+      run: |-
+        docker build \
+          --tag "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:$GITHUB_SHA" \
+          --tag "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:latest" \
+          ./backend/worker
+
+    # Push the Docker images to Google Container Registry
+    - name: Publish frontend image
+      run: |-
+        docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:$GITHUB_SHA"
+        docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:latest"
+
+    - name: Publish API image
+      run: |-
+        docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA"
+        docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:latest"
+
+    - name: Publish worker image
+      run: |-
+        docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:$GITHUB_SHA"
+        docker push "$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:latest"
+
+    # Deploy to GKE
+    - name: Deploy to GKE
+      run: |-
+        # Replace image tags in Kubernetes manifests
+        sed -i "s|FRONTEND_IMAGE|$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-frontend:$GITHUB_SHA|g" k8s/frontend-deployment.yaml
+        sed -i "s|API_IMAGE|$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA|g" k8s/api-deployment.yaml
+        sed -i "s|WORKER_IMAGE|$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-worker:$GITHUB_SHA|g" k8s/worker-deployment.yaml
+        
+        # Apply Kubernetes manifests
+        kubectl apply -f k8s/
+
+    # Run database migrations
+    - name: Run database migrations
+      run: |-
+        kubectl run migration-job-$GITHUB_RUN_ID \
+          --image="$REGISTRY_HOSTNAME/$PROJECT_ID/research-platform-api:$GITHUB_SHA" \
+          --restart=Never \
+          --command -- python manage.py migrate
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  performance-test:
+    name: Performance Test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    needs: setup-build-publish-deploy
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install k6
+      run: |
+        sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+
+    - name: Run performance tests
+      run: k6 run tests/performance/load-test.js
+      env:
+        API_BASE_URL: ${{ secrets.STAGING_API_URL }} 
