@@ -1,6 +1,6 @@
 package com.mach33.research.controller;
 
-import com.mach33.research.service.InMemoryResearchStatementService;
+import com.mach33.research.service.FileBasedResearchStatementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,15 +15,15 @@ import java.util.HashMap;
 public class ResearchStatementController {
     
     @Autowired
-    private InMemoryResearchStatementService researchStatementService;
+    private FileBasedResearchStatementService researchStatementService;
     
     /**
      * Create a new research statement
      */
     @PostMapping
-    public ResponseEntity<InMemoryResearchStatementService.ResearchStatementDto> createStatement(@RequestBody CreateStatementRequest request) {
+    public ResponseEntity<FileBasedResearchStatementService.ResearchStatementDto> createStatement(@RequestBody CreateStatementRequest request) {
         try {
-            InMemoryResearchStatementService.ResearchStatementDto statement = researchStatementService.createStatement(
+            FileBasedResearchStatementService.ResearchStatementDto statement = researchStatementService.createStatement(
                 request.originalStatement,
                 request.sessionId,
                 request.type.toUpperCase()
@@ -38,8 +38,8 @@ public class ResearchStatementController {
      * Get all statements for a session
      */
     @GetMapping("/session/{sessionId}")
-    public ResponseEntity<List<InMemoryResearchStatementService.ResearchStatementDto>> getStatementsBySession(@PathVariable String sessionId) {
-        List<InMemoryResearchStatementService.ResearchStatementDto> statements = researchStatementService.getStatementsBySession(sessionId);
+    public ResponseEntity<List<FileBasedResearchStatementService.ResearchStatementDto>> getStatementsBySession(@PathVariable String sessionId) {
+        List<FileBasedResearchStatementService.ResearchStatementDto> statements = researchStatementService.getStatementsBySession(sessionId);
         return ResponseEntity.ok(statements);
     }
     
@@ -47,11 +47,11 @@ public class ResearchStatementController {
      * Get statements by type for a session
      */
     @GetMapping("/session/{sessionId}/type/{type}")
-    public ResponseEntity<List<InMemoryResearchStatementService.ResearchStatementDto>> getStatementsByType(
+    public ResponseEntity<List<FileBasedResearchStatementService.ResearchStatementDto>> getStatementsByType(
             @PathVariable String sessionId, 
             @PathVariable String type) {
         try {
-            List<InMemoryResearchStatementService.ResearchStatementDto> statements = researchStatementService.getStatementsByType(sessionId, type.toUpperCase());
+            List<FileBasedResearchStatementService.ResearchStatementDto> statements = researchStatementService.getStatementsByType(sessionId, type.toUpperCase());
             return ResponseEntity.ok(statements);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
@@ -62,7 +62,7 @@ public class ResearchStatementController {
      * Get the active statement for a session
      */
     @GetMapping("/session/{sessionId}/active")
-    public ResponseEntity<InMemoryResearchStatementService.ResearchStatementDto> getActiveStatement(@PathVariable String sessionId) {
+    public ResponseEntity<FileBasedResearchStatementService.ResearchStatementDto> getActiveStatement(@PathVariable String sessionId) {
         return researchStatementService.getActiveStatement(sessionId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -72,11 +72,11 @@ public class ResearchStatementController {
      * Refine a research statement
      */
     @PutMapping("/{statementId}/refine")
-    public ResponseEntity<InMemoryResearchStatementService.ResearchStatementDto> refineStatement(
+    public ResponseEntity<FileBasedResearchStatementService.ResearchStatementDto> refineStatement(
             @PathVariable Long statementId,
             @RequestBody RefineStatementRequest request) {
         try {
-            InMemoryResearchStatementService.ResearchStatementDto statement = researchStatementService.refineStatement(
+            FileBasedResearchStatementService.ResearchStatementDto statement = researchStatementService.refineStatement(
                 statementId,
                 request.refinedStatement,
                 request.refinementNotes
@@ -91,11 +91,11 @@ public class ResearchStatementController {
      * Add subquestions to a statement
      */
     @PostMapping("/{statementId}/subquestions")
-    public ResponseEntity<InMemoryResearchStatementService.ResearchStatementDto> addSubquestions(
+    public ResponseEntity<FileBasedResearchStatementService.ResearchStatementDto> addSubquestions(
             @PathVariable Long statementId,
             @RequestBody AddSubquestionsRequest request) {
         try {
-            InMemoryResearchStatementService.ResearchStatementDto statement = researchStatementService.addSubquestions(statementId, request.subquestions);
+            FileBasedResearchStatementService.ResearchStatementDto statement = researchStatementService.addSubquestions(statementId, request.subquestions);
             return ResponseEntity.ok(statement);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -115,11 +115,11 @@ public class ResearchStatementController {
      * Update statement status
      */
     @PutMapping("/{statementId}/status")
-    public ResponseEntity<InMemoryResearchStatementService.ResearchStatementDto> updateStatus(
+    public ResponseEntity<FileBasedResearchStatementService.ResearchStatementDto> updateStatus(
             @PathVariable Long statementId,
             @RequestBody UpdateStatusRequest request) {
         try {
-            InMemoryResearchStatementService.ResearchStatementDto statement = researchStatementService.updateStatus(statementId, request.status.toUpperCase());
+            FileBasedResearchStatementService.ResearchStatementDto statement = researchStatementService.updateStatus(statementId, request.status.toUpperCase());
             return ResponseEntity.ok(statement);
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
@@ -130,10 +130,10 @@ public class ResearchStatementController {
      * Search statements by content
      */
     @GetMapping("/session/{sessionId}/search")
-    public ResponseEntity<List<InMemoryResearchStatementService.ResearchStatementDto>> searchStatements(
+    public ResponseEntity<List<FileBasedResearchStatementService.ResearchStatementDto>> searchStatements(
             @PathVariable String sessionId,
             @RequestParam String q) {
-        List<InMemoryResearchStatementService.ResearchStatementDto> statements = researchStatementService.searchStatements(sessionId, q);
+        List<FileBasedResearchStatementService.ResearchStatementDto> statements = researchStatementService.searchStatements(sessionId, q);
         return ResponseEntity.ok(statements);
     }
     
@@ -142,7 +142,7 @@ public class ResearchStatementController {
      */
     @GetMapping("/session/{sessionId}/statistics")
     public ResponseEntity<Map<String, Object>> getStatementStatistics(@PathVariable String sessionId) {
-        InMemoryResearchStatementService.StatementStatistics stats = researchStatementService.getStatementStatistics(sessionId);
+        FileBasedResearchStatementService.StatementStatistics stats = researchStatementService.getStatementStatistics(sessionId);
         
         Map<String, Object> response = new HashMap<>();
         response.put("totalStatements", stats.totalStatements);

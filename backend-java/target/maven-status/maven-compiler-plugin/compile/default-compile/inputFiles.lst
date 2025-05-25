@@ -5,3 +5,4 @@
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/EvidenceController.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/SimpleController.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/service/InMemoryEvidenceService.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/service/FileBasedResearchStatementService.java
