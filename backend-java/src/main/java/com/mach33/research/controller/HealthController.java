@@ -21,8 +21,7 @@ public class HealthController {
         response.put("version", "1.0.0");
         response.put("timestamp", LocalDateTime.now());
         response.put("backend", "Spring Boot + Java 17");
-        response.put("database", "PostgreSQL");
-        response.put("cache", "Redis");
+        response.put("environment", "Cloud Run");
         
         return ResponseEntity.ok(response);
     }

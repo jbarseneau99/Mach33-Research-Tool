@@ -1,14 +1,6 @@
 spring:
   application:
     name: research-platform
-  
-  # Disable auto-configuration for now
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
-      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
       
 # Server Configuration
 server:
@@ -28,8 +20,7 @@ management:
 logging:
   level:
     com.mach33.research: INFO
-    org.springframework.security: DEBUG
-    org.hibernate.SQL: DEBUG
+    org.springframework.web: INFO
     
 # Custom Application Properties
 research:
