@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 import ResearchStatementManager from './components/ResearchStatementManager';
+import EvidenceManager from './components/EvidenceManager';
 
 function App() {
   const [apiStatus, setApiStatus] = useState('Checking...');
   const [activeSection, setActiveSection] = useState('dashboard');
   const [currentSession, setCurrentSession] = useState(null);
   const [statementStats, setStatementStats] = useState(null);
+  const [evidenceStats, setEvidenceStats] = useState(null);
 
   useEffect(() => {
     const checkAPI = async () => {
@@ -39,6 +41,7 @@ function App() {
     });
     setActiveSection('chat');
     loadStatementStats(sessionId);
+    loadEvidenceStats(sessionId);
   };
 
   const loadStatementStats = async (sessionId) => {
@@ -50,6 +53,18 @@ function App() {
       }
     } catch (error) {
       console.error('Error loading statement statistics:', error);
+    }
+  };
+
+  const loadEvidenceStats = async (sessionId) => {
+    try {
+      const response = await fetch(`/api/evidence/session/${sessionId}/statistics`);
+      if (response.ok) {
+        const stats = await response.json();
+        setEvidenceStats(stats);
+      }
+    } catch (error) {
+      console.error('Error loading evidence statistics:', error);
     }
   };
 
@@ -180,6 +195,17 @@ function App() {
                   }}
                 />
               )}
+
+              {/* Evidence Management */}
+              {currentSession && (
+                <EvidenceManager 
+                  sessionId={currentSession.id}
+                  onEvidenceCreated={(evidence) => {
+                    console.log('New evidence created:', evidence);
+                    loadEvidenceStats(currentSession.id);
+                  }}
+                />
+              )}
               
               <div className="chat-messages">
                 <div className="message system">
@@ -290,6 +316,36 @@ function App() {
               <div className="artifact-type">
                 <span className="artifact-label">Refined</span>
                 <span className="artifact-count">{statementStats?.refinedCount || 0}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="artifacts-panel">
+            <h3>Evidence Artifacts</h3>
+            <div className="artifact-types">
+              <div className="artifact-type">
+                <span className="artifact-label">Total Evidence</span>
+                <span className="artifact-count">{evidenceStats?.totalEvidence || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Primary</span>
+                <span className="artifact-count">{evidenceStats?.primaryCount || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Secondary</span>
+                <span className="artifact-count">{evidenceStats?.secondaryCount || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Tertiary</span>
+                <span className="artifact-count">{evidenceStats?.tertiaryCount || 0}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Avg Reliability</span>
+                <span className="artifact-count">{evidenceStats ? Math.round(evidenceStats.averageReliability * 100) + '%' : '0%'}</span>
+              </div>
+              <div className="artifact-type">
+                <span className="artifact-label">Linked</span>
+                <span className="artifact-count">{evidenceStats?.linkedCount || 0}</span>
               </div>
             </div>
           </div>
