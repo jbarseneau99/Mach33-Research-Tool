@@ -62,3 +62,4 @@ docker-compose.override.yml
 
 # Cloud Build logs
 cloudbuild-logs/Google_cloud/
+.env
