@@ -20,8 +20,8 @@ public class SimpleController {
         return response;
     }
     
-    @GetMapping("/health")
-    public Map<String, Object> health() {
+    @GetMapping("/status")
+    public Map<String, Object> status() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "UP");
         response.put("service", "Multi-Agent Research Platform");
@@ -29,10 +29,5 @@ public class SimpleController {
         response.put("timestamp", LocalDateTime.now().toString());
         response.put("backend", "Spring Boot + Java 17");
         return response;
-    }
-    
-    @GetMapping("/api/health")
-    public Map<String, Object> apiHealth() {
-        return health();
     }
 } 
