@@ -1,13 +1,13 @@
 # Build stage
-FROM node:14-alpine as build
+FROM node:18-alpine as build
 
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies (skip audit to avoid issues)
-RUN npm install --production=false
+# Clean install to ensure we get the right versions
+RUN npm ci
 
 # Copy source code
 COPY . .
