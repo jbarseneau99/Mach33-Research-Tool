@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Copy Django settings from API
-COPY ../api/research_platform /app/research_platform
+COPY research_platform /app/research_platform
 
 # Expose port (for health checks)
 EXPOSE 8080
