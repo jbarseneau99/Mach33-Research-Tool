@@ -175,6 +175,19 @@ public class ResearchStatementController {
         }
     }
     
+    /**
+     * Test endpoint to verify service injection
+     */
+    @GetMapping("/test")
+    public ResponseEntity<Map<String, Object>> test() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "OK");
+        response.put("controller", "ResearchStatementController");
+        response.put("serviceInjected", researchStatementService != null);
+        response.put("timestamp", java.time.LocalDateTime.now().toString());
+        return ResponseEntity.ok(response);
+    }
+    
     // Request DTOs
     public static class CreateStatementRequest {
         public String originalStatement;
