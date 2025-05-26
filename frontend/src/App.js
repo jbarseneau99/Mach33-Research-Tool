@@ -25,7 +25,25 @@ function App() {
       }
     };
 
+    // Restore session from localStorage on app load
+    const restoreSession = () => {
+      const savedSession = localStorage.getItem('currentSession');
+      if (savedSession) {
+        try {
+          const session = JSON.parse(savedSession);
+          setCurrentSession(session);
+          loadStatementStats(session.id);
+          loadEvidenceStats(session.id);
+          console.log('Restored session:', session.id);
+        } catch (error) {
+          console.error('Error restoring session:', error);
+          localStorage.removeItem('currentSession');
+        }
+      }
+    };
+
     checkAPI();
+    restoreSession();
   }, []);
 
   const handleSectionChange = (section) => {
@@ -34,15 +52,21 @@ function App() {
 
   const startNewSession = () => {
     const sessionId = `session-${Date.now()}`;
-    setCurrentSession({
+    const newSession = {
       id: sessionId,
       name: 'New Research Session',
       created: new Date().toLocaleString(),
       status: 'Active'
-    });
+    };
+    
+    setCurrentSession(newSession);
+    // Save session to localStorage
+    localStorage.setItem('currentSession', JSON.stringify(newSession));
+    
     setActiveSection('chat');
     loadStatementStats(sessionId);
     loadEvidenceStats(sessionId);
+    console.log('Started new session:', sessionId);
   };
 
   const loadStatementStats = async (sessionId) => {
@@ -67,6 +91,15 @@ function App() {
     } catch (error) {
       console.error('Error loading evidence statistics:', error);
     }
+  };
+
+  const clearSession = () => {
+    setCurrentSession(null);
+    setStatementStats(null);
+    setEvidenceStats(null);
+    localStorage.removeItem('currentSession');
+    setActiveSection('dashboard');
+    console.log('Session cleared');
   };
 
   return (
@@ -285,6 +318,25 @@ function App() {
                   <label>Created:</label>
                   <span>{currentSession.created}</span>
                 </div>
+                <div className="context-item">
+                  <label>Session ID:</label>
+                  <span style={{fontSize: '0.8em', color: '#666'}}>{currentSession.id}</span>
+                </div>
+                <button 
+                  onClick={clearSession}
+                  style={{
+                    marginTop: '10px',
+                    padding: '5px 10px',
+                    background: '#e74c3c',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '0.8em'
+                  }}
+                >
+                  Clear Session
+                </button>
               </div>
             ) : (
               <p>No active session</p>
