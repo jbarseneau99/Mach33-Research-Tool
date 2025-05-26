@@ -178,6 +178,19 @@ public class ResearchStatementController {
     }
     
     /**
+     * Simple test endpoint without dependency injection
+     */
+    @GetMapping("/ping")
+    public ResponseEntity<Map<String, Object>> ping() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "OK");
+        response.put("controller", "ResearchStatementController");
+        response.put("message", "Controller is working");
+        response.put("timestamp", java.time.LocalDateTime.now().toString());
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
      * Test endpoint to verify service injection
      */
     @GetMapping("/test")

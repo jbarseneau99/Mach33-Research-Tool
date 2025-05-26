@@ -19,7 +19,7 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns("*")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH")
                 .allowedHeaders("*")
-                .allowCredentials(true)
+                .allowCredentials(false)
                 .maxAge(3600);
     }
 
@@ -35,7 +35,7 @@ public class CorsConfig implements WebMvcConfigurer {
         
         configuration.setAllowedHeaders(Arrays.asList("*"));
         
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
         
         configuration.setExposedHeaders(Arrays.asList(
             "Access-Control-Allow-Origin",

@@ -19,6 +19,11 @@ management:
 # Logging Configuration
 logging:
   level:
-    com.mach33.research: INFO
-    org.springframework.web: INFO
-    root: INFO 
+    com.mach33.research: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.boot: DEBUG
+    org.springframework.context: DEBUG
+    org.springframework.beans: DEBUG
+    root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n" 
