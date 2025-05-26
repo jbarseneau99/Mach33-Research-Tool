@@ -51,16 +51,29 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
       if (response.ok) {
         const data = await response.json();
         setStatements(data);
+        console.log(`Loaded ${data.length} statements for session ${sessionId}`);
       } else {
-        console.log('API not available, switching to mock mode');
-        setMockMode(true);
-        loadStatements(); // Retry with mock mode
+        console.error(`API call failed with status: ${response.status}`);
+        // Only switch to mock mode for actual server errors, not 404s
+        if (response.status >= 500) {
+          console.log('Server error, switching to mock mode');
+          setMockMode(true);
+          loadStatements(); // Retry with mock mode
+        } else {
+          // For other errors (like 404), just set empty array
+          setStatements([]);
+        }
       }
     } catch (error) {
       console.error('Error loading statements:', error);
-      console.log('Switching to mock mode');
-      setMockMode(true);
-      loadStatements(); // Retry with mock mode
+      // Only switch to mock mode for network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.log('Network error, switching to mock mode');
+        setMockMode(true);
+        loadStatements(); // Retry with mock mode
+      } else {
+        setStatements([]);
+      }
     }
   };
 
@@ -119,6 +132,7 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
       
       if (response.ok) {
         const statement = await response.json();
+        console.log('Created statement:', statement);
         setStatements([statement, ...statements]);
         setNewStatement({ originalStatement: '', type: 'EXPLORATORY' });
         setShowCreateForm(false);
@@ -132,12 +146,23 @@ const ResearchStatementManager = ({ sessionId, onStatementCreated }) => {
         if (onStatementCreated) {
           onStatementCreated(statement);
         }
+        
+        // Reload statements to get fresh data
+        await loadStatements();
+      } else {
+        console.error(`Failed to create statement: ${response.status}`);
+        alert('Failed to create research statement. Please try again.');
       }
     } catch (error) {
       console.error('Error creating statement:', error);
-      console.log('Switching to mock mode');
-      setMockMode(true);
-      createStatement(e); // Retry with mock mode
+      // Only switch to mock mode for network errors
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.log('Network error, switching to mock mode');
+        setMockMode(true);
+        createStatement(e); // Retry with mock mode
+      } else {
+        alert('Failed to create research statement. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
