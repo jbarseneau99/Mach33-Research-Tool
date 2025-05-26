@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 import ResearchStatementManager from './components/ResearchStatementManager';
 import EvidenceManager from './components/EvidenceManager';
+import ChatInterface from './components/ChatInterface';
 import { apiCall } from './config';
 
 function App() {
@@ -209,16 +210,7 @@ function App() {
           )}
 
           {activeSection === 'chat' && (
-            <div className="chat-interface">
-              <div className="chat-header">
-                <h2>Research Chat</h2>
-                <div className="active-agents">
-                  <span className="agent claude">Claude</span>
-                  <span className="agent chatgpt">ChatGPT</span>
-                  <span className="agent grok">Grok</span>
-                </div>
-              </div>
-              
+            <div className="chat-section">
               {/* Research Statement Management */}
               {currentSession && (
                 <ResearchStatementManager 
@@ -241,22 +233,19 @@ function App() {
                 />
               )}
               
-              <div className="chat-messages">
-                <div className="message system">
-                  <div className="message-content">
-                    Welcome to your research session! Start by creating a research statement above, then ask questions and the AI agents will collaborate to help you.
-                  </div>
-                </div>
-              </div>
+              {/* AI Chat Interface */}
+              {currentSession && (
+                <ChatInterface sessionId={currentSession.id} />
+              )}
               
-              <div className="chat-input">
-                <input 
-                  type="text" 
-                  placeholder="Ask your research question..."
-                  className="message-input"
-                />
-                <button className="send-btn">Send</button>
-              </div>
+              {!currentSession && (
+                <div className="no-session-message">
+                  <p>Please start a new session to begin chatting with AI agents.</p>
+                  <button onClick={startNewSession} className="btn-primary">
+                    Start New Session
+                  </button>
+                </div>
+              )}
             </div>
           )}
 

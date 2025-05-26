@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-PROJECT_ID="mach33-research-tool-214656435079"
+PROJECT_ID="mach33-research-tool-460917"
 REGION="us-central1"
 SERVICE_NAME="research-platform-frontend"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
