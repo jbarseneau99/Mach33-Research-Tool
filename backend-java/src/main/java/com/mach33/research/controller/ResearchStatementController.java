@@ -1,7 +1,6 @@
 package com.mach33.research.controller;
 
 import com.mach33.research.service.InMemoryResearchStatementService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.HashMap;
 @CrossOrigin(origins = "*")
 public class ResearchStatementController {
     
-    @Autowired
-    private InMemoryResearchStatementService researchStatementService;
+    private final InMemoryResearchStatementService researchStatementService;
+    
+    public ResearchStatementController(InMemoryResearchStatementService researchStatementService) {
+        this.researchStatementService = researchStatementService;
+    }
     
     /**
      * Create a new research statement

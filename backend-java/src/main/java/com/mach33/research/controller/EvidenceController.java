@@ -1,7 +1,6 @@
 package com.mach33.research.controller;
 
 import com.mach33.research.service.InMemoryEvidenceService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,8 +13,11 @@ import java.util.HashMap;
 @CrossOrigin(origins = "*")
 public class EvidenceController {
     
-    @Autowired
-    private InMemoryEvidenceService evidenceService;
+    private final InMemoryEvidenceService evidenceService;
+    
+    public EvidenceController(InMemoryEvidenceService evidenceService) {
+        this.evidenceService = evidenceService;
+    }
     
     /**
      * Create a new evidence item
