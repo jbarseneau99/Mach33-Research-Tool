@@ -8,8 +8,9 @@ const config = {
   }
 };
 
-// Determine current environment
-const environment = process.env.NODE_ENV || 'development';
+// Determine current environment - use production by default for deployed apps
+const environment = process.env.NODE_ENV || 
+  (window.location.hostname === 'localhost' ? 'development' : 'production');
 
 // Export the appropriate configuration
 export const API_BASE_URL = config[environment].apiUrl;
@@ -17,6 +18,8 @@ export const API_BASE_URL = config[environment].apiUrl;
 // Helper function to make API calls with the correct base URL
 export const apiCall = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
+  
+  console.log(`Making API call to: ${url} (environment: ${environment})`);
   
   const defaultOptions = {
     headers: {

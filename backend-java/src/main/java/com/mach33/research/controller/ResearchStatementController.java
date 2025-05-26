@@ -39,8 +39,18 @@ public class ResearchStatementController {
      */
     @GetMapping("/session/{sessionId}")
     public ResponseEntity<List<InMemoryResearchStatementService.ResearchStatementDto>> getStatementsBySession(@PathVariable String sessionId) {
-        List<InMemoryResearchStatementService.ResearchStatementDto> statements = researchStatementService.getStatementsBySession(sessionId);
-        return ResponseEntity.ok(statements);
+        try {
+            if (researchStatementService == null) {
+                System.err.println("ERROR: researchStatementService is null - dependency injection failed");
+                return ResponseEntity.status(500).build();
+            }
+            List<InMemoryResearchStatementService.ResearchStatementDto> statements = researchStatementService.getStatementsBySession(sessionId);
+            return ResponseEntity.ok(statements);
+        } catch (Exception e) {
+            System.err.println("ERROR in getStatementsBySession: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
     
     /**
@@ -142,17 +152,27 @@ public class ResearchStatementController {
      */
     @GetMapping("/session/{sessionId}/statistics")
     public ResponseEntity<Map<String, Object>> getStatementStatistics(@PathVariable String sessionId) {
-        InMemoryResearchStatementService.StatementStatistics stats = researchStatementService.getStatementStatistics(sessionId);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("totalStatements", stats.totalStatements);
-        response.put("exploratoryCount", stats.exploratoryCount);
-        response.put("specificCount", stats.specificCount);
-        response.put("hypothesisCount", stats.hypothesisCount);
-        response.put("activeCount", stats.activeCount);
-        response.put("refinedCount", stats.refinedCount);
-        
-        return ResponseEntity.ok(response);
+        try {
+            if (researchStatementService == null) {
+                System.err.println("ERROR: researchStatementService is null in statistics endpoint");
+                return ResponseEntity.status(500).build();
+            }
+            InMemoryResearchStatementService.StatementStatistics stats = researchStatementService.getStatementStatistics(sessionId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("totalStatements", stats.totalStatements);
+            response.put("exploratoryCount", stats.exploratoryCount);
+            response.put("specificCount", stats.specificCount);
+            response.put("hypothesisCount", stats.hypothesisCount);
+            response.put("activeCount", stats.activeCount);
+            response.put("refinedCount", stats.refinedCount);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("ERROR in getStatementStatistics: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
     
     // Request DTOs

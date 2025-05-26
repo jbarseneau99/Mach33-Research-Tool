@@ -1,4 +1,5 @@
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/ResearchStatementController.java
+/Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/config/CorsFilter.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/controller/HealthController.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/service/InMemoryResearchStatementService.java
 /Users/jbarseneau/Mach33-Research-Tool/backend-java/src/main/java/com/mach33/research/ResearchPlatformApplication.java

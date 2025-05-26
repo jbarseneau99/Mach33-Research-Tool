@@ -40,8 +40,18 @@ public class EvidenceController {
      */
     @GetMapping("/session/{sessionId}")
     public ResponseEntity<List<InMemoryEvidenceService.EvidenceDto>> getEvidenceBySession(@PathVariable String sessionId) {
-        List<InMemoryEvidenceService.EvidenceDto> evidence = evidenceService.getEvidenceBySession(sessionId);
-        return ResponseEntity.ok(evidence);
+        try {
+            if (evidenceService == null) {
+                System.err.println("ERROR: evidenceService is null - dependency injection failed");
+                return ResponseEntity.status(500).build();
+            }
+            List<InMemoryEvidenceService.EvidenceDto> evidence = evidenceService.getEvidenceBySession(sessionId);
+            return ResponseEntity.ok(evidence);
+        } catch (Exception e) {
+            System.err.println("ERROR in getEvidenceBySession: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
     }
     
     /**
