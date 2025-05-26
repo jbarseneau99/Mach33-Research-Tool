@@ -4,14 +4,14 @@ steps:
     args: [
       'build',
       '--platform', 'linux/amd64',
-      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:$BUILD_ID',
       '-t', 'gcr.io/$PROJECT_ID/research-platform-api:latest',
       './backend-java'
     ]
 
   # Push the Docker image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:$BUILD_ID']
 
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:latest']
@@ -20,7 +20,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
       'run', 'deploy', 'research-platform-api',
-      '--image', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA',
+      '--image', 'gcr.io/$PROJECT_ID/research-platform-api:$BUILD_ID',
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
