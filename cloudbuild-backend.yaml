@@ -1,32 +1,31 @@
-# Cloud Build configuration for frontend-only deployment
 steps:
   # Build the Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args: [
       'build',
       '--platform', 'linux/amd64',
-      '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA',
-      '-t', 'gcr.io/$PROJECT_ID/research-platform-frontend:latest',
-      './frontend'
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/research-platform-api:latest',
+      './backend-java'
     ]
 
   # Push the Docker image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA']
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA']
 
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-frontend:latest']
+    args: ['push', 'gcr.io/$PROJECT_ID/research-platform-api:latest']
 
   # Deploy to Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
     args: [
-      'run', 'deploy', 'research-platform-frontend',
-      '--image', 'gcr.io/$PROJECT_ID/research-platform-frontend:$COMMIT_SHA',
+      'run', 'deploy', 'research-platform-api',
+      '--image', 'gcr.io/$PROJECT_ID/research-platform-api:$COMMIT_SHA',
       '--platform', 'managed',
       '--region', 'us-central1',
       '--allow-unauthenticated',
-      '--port', '3000',
-      '--memory', '512Mi',
+      '--port', '8080',
+      '--memory', '1Gi',
       '--cpu', '1'
     ]
 
