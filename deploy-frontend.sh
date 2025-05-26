@@ -43,7 +43,7 @@ gcloud run deploy $SERVICE_NAME \
     --platform managed \
     --region $REGION \
     --allow-unauthenticated \
-    --port 80 \
+    --port 3000 \
     --memory 512Mi \
     --cpu 1 \
     --min-instances 0 \
