@@ -43,9 +43,9 @@ k8s/secrets/
 k8s/*/secrets/
 
 # Environment-specific configs
-.env.local
-.env.staging
-.env.production
+#.env.local
+#.env.staging
+#.env.production
 config/local.yaml
 config/staging.yaml
 config/production.yaml
@@ -62,4 +62,6 @@ docker-compose.override.yml
 
 # Cloud Build logs
 cloudbuild-logs/Google_cloud/
+#.env
 .env
+backend-java/.env
